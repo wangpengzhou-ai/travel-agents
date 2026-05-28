@@ -1,0 +1,65 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+from pathlib import Path
+
+from common import DEFAULT_STATE_DIR, slugify, utc_now, write_json
+from export_route_geojson import to_geojson
+from plan_route import plan_route
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--origin", required=True)
+    parser.add_argument("--destination", required=True)
+    parser.add_argument("--character", required=True)
+    parser.add_argument("--style", default="watercolor_postcard")
+    parser.add_argument("--origin-lat", type=float)
+    parser.add_argument("--origin-lon", type=float)
+    parser.add_argument("--destination-lat", type=float)
+    parser.add_argument("--destination-lon", type=float)
+    parser.add_argument("--target-days", type=int)
+    parser.add_argument("--state-dir", default=str(DEFAULT_STATE_DIR))
+    parser.add_argument("--trip-id")
+    args = parser.parse_args()
+
+    origin_coords = None
+    destination_coords = None
+    if args.origin_lat is not None and args.origin_lon is not None:
+        origin_coords = {"lat": args.origin_lat, "lon": args.origin_lon}
+    if args.destination_lat is not None and args.destination_lon is not None:
+        destination_coords = {"lat": args.destination_lat, "lon": args.destination_lon}
+
+    route = plan_route(args.origin, args.destination, origin_coords, destination_coords, args.target_days)
+    trip_id = args.trip_id or f"{slugify(args.origin)}-to-{slugify(args.destination)}-{route['days']}d"
+    trip_dir = Path(args.state_dir).expanduser() / "trips" / trip_id
+    trip_dir.mkdir(parents=True, exist_ok=True)
+
+    trip = {
+        "trip_id": trip_id,
+        "created_at": utc_now(),
+        "updated_at": utc_now(),
+        "origin": args.origin,
+        "destination": args.destination,
+        "days": route["days"],
+        "direct_distance_km": route.get("direct_distance_km"),
+        "route_distance_km": route.get("route_distance_km"),
+        "style": args.style,
+        "character": {
+            "description": args.character,
+            "scale_rule": "small off-center traveler, naturally participating in the local environment, never the main subject",
+        },
+        "current_day": 1,
+        "auto_set_wallpaper": False,
+        "waypoints": route["waypoints"],
+    }
+
+    write_json(trip_dir / "trip.json", trip)
+    write_json(trip_dir / "route.json", route)
+    write_json(trip_dir / "route.geojson", to_geojson(route))
+    print(trip_dir)
+
+
+if __name__ == "__main__":
+    main()
