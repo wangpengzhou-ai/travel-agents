@@ -10,7 +10,7 @@
 
 - 检测本地环境、屏幕尺寸、图片生成 Provider、桌面壁纸和自动化能力。
 - 根据起点、终点和距离估算旅行天数，生成旅程状态文件。
-- 维护小型、连续出现的 Agent 旅行者形象，让它在不同地点自然互动。
+- 维护小型、连续出现的 Agent 旅行者形象，让它每天尽量参与当地特色活动，并与当地人产生小互动。
 - 输出每日场景提示词、路线 GeoJSON、地点/日期标签、天气上下文和可选图片文件。
 - 支持宿主 coding agent 原生生图、本地 OpenAI/Gemini/Seedream Provider，或外部命令形式的图片生成 Provider。
 - 可选地安装每日自动运行计划，或在用户授权后设置本机壁纸。
@@ -59,7 +59,9 @@ python scripts/daily_run.py \
 
 实时图片生成有两条路径：如果宿主 coding agent 有原生生图能力，使用 dry-run 产出的 prompt 生图，再用 `scripts/import_generated_image.py` 登记结果；如果没有原生生图能力，则通过本地环境变量配置 `OPENAI_API_KEY`、`GOOGLE_API_KEY`、`GEMINI_API_KEY`、`SEEDREAM_API_KEY` 或 `TRAVEL4ME_IMAGE_COMMAND`。
 
-如果 `validate_route.py` 报告路线仍是占位内容，先让 coding agent 补齐真实地点、坐标、地标和视觉元素，再用 `scripts/apply_route_enrichment.py` 写回旅程状态。
+天气是可选增强信息。生成最终明信片、每日场景图或壁纸前，如果已经查询到或用户提供了当天当地天气，可以通过 `--weather` 或 `waypoint.weather` 写入 prompt；缺天气时继续生成，不阻塞流程。
+
+如果 `validate_route.py` 报告路线仍是占位内容，先让 coding agent 补齐真实地点、坐标、地标、视觉元素，并把具体的当地活动和人际互动直接写进路线，再用 `scripts/apply_route_enrichment.py` 写回旅程状态。
 
 ## English
 
@@ -71,7 +73,7 @@ The project is intentionally local and portable. A coding agent can run the scri
 
 - Detects local environment, screen size, image providers, wallpaper support, and automation options.
 - Estimates journey length from the route distance and creates trip state files.
-- Keeps a small recurring Agent traveler consistent across daily scenes.
+- Keeps a small recurring Agent traveler consistent across daily scenes, usually joining local activities and interacting with local people.
 - Exports daily scene prompts, route GeoJSON, place/date labels, weather context, and optional generated images.
 - Supports host-agent native image generation, local OpenAI/Gemini/Seedream providers, or a custom command hook.
 - Can optionally install a daily run schedule or set the local wallpaper after user approval.
@@ -120,4 +122,6 @@ python scripts/daily_run.py \
 
 Live image generation has two paths: if the host coding agent has native image generation, use the dry-run prompt and then register the generated image with `scripts/import_generated_image.py`; otherwise configure local environment variables such as `OPENAI_API_KEY`, `GOOGLE_API_KEY`, `GEMINI_API_KEY`, `SEEDREAM_API_KEY`, or `TRAVEL4ME_IMAGE_COMMAND`.
 
-If `validate_route.py` reports placeholder route content, ask the coding agent to enrich the route with real places, coordinates, landmarks, and local visual elements, then apply it with `scripts/apply_route_enrichment.py`.
+Weather is optional enhancement context. Before generating final postcards, daily scene images, or wallpapers, write the day's local weather into the prompt through `--weather` or `waypoint.weather` when it is already available or user-provided; missing weather does not block generation.
+
+If `validate_route.py` reports placeholder route content, ask the coding agent to enrich the route with real places, coordinates, landmarks, local visual elements, and place-specific local activities and human interactions written directly into the route, then apply it with `scripts/apply_route_enrichment.py`.

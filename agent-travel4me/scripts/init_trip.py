@@ -71,7 +71,7 @@ def main() -> None:
             "enabled": True,
             "source": "model_drawn",
             "position": "upper_left",
-            "format": "{label_location} / {date}",
+            "format": "{Title Case label_location}    {Month D, YYYY}",
         },
         "current_day": 1,
         "auto_set_wallpaper": False,

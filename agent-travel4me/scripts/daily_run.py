@@ -48,7 +48,7 @@ def main() -> None:
         if apply_daily_context(trip, day, args.weather, args.label_date, args.label_location):
             save_trip(trip_dir, trip)
             trip = load_trip(trip_dir)
-        validation_issues = []
+        validation_issues = validate_daily_context(trip, day)
         if not args.dry_run:
             validation_issues = validate_route(trip)
             validation_issues.extend(validate_daily_context(trip, day))

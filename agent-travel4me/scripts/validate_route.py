@@ -19,7 +19,9 @@ REQUIRED_WAYPOINT_FIELDS = [
     "landscape_type",
     "local_visual_elements",
     "palette",
+    "local_activity",
     "agent_activity",
+    "human_interaction",
     "agent_position",
     "prompt_focus",
     "is_natural_or_semi_natural",
@@ -32,6 +34,13 @@ PLACEHOLDER_PATTERNS = [
     re.compile(r"primary recognizable landmark", re.IGNORECASE),
     re.compile(r"secondary local feature", re.IGNORECASE),
     re.compile(r"locally appropriate", re.IGNORECASE),
+]
+
+NO_HUMAN_INTERACTION_VALUES = {"none", "no human interaction", "n/a", "na"}
+GENERIC_INTERACTION_PATTERNS = [
+    re.compile(r"\blocal (activity|person|people|vendor|guide|worker|resident|food|drink|market|ritual)\b", re.IGNORECASE),
+    re.compile(r"\bregional (activity|person|people|guide|path|ritual|marker)\b", re.IGNORECASE),
+    re.compile(r"\broute-specific\b", re.IGNORECASE),
 ]
 
 
@@ -64,6 +73,50 @@ def _is_city_only(waypoint: dict[str, Any]) -> bool:
     return not any(word in landscape for word in ("river", "water", "mountain", "desert", "forest", "coast", "lake", "harbor", "plain"))
 
 
+def _has_human_interaction(waypoint: dict[str, Any]) -> bool:
+    value = waypoint.get("human_interaction")
+    if not isinstance(value, str):
+        return False
+    normalized = value.strip().lower().rstrip(".")
+    return bool(normalized) and normalized not in NO_HUMAN_INTERACTION_VALUES
+
+
+def _has_text(value: Any) -> bool:
+    return isinstance(value, str) and bool(value.strip())
+
+
+def _has_generic_interaction_text(value: Any) -> bool:
+    if not isinstance(value, str):
+        return False
+    return any(pattern.search(value) for pattern in GENERIC_INTERACTION_PATTERNS)
+
+
+def _specificity_terms(waypoint: dict[str, Any]) -> list[str]:
+    raw_terms: list[str] = []
+    for field in ("location", "country_or_region"):
+        value = waypoint.get(field)
+        if isinstance(value, str):
+            raw_terms.append(value)
+    for field in ("landmarks",):
+        value = waypoint.get(field)
+        if isinstance(value, list):
+            raw_terms.extend(str(item) for item in value)
+
+    terms = []
+    for term in raw_terms:
+        cleaned = term.strip().lower()
+        if cleaned and not _has_placeholder(cleaned):
+            terms.append(cleaned)
+    return terms
+
+
+def _mentions_route_specificity(value: Any, waypoint: dict[str, Any]) -> bool:
+    if not isinstance(value, str):
+        return False
+    normalized = value.lower()
+    return any(term in normalized for term in _specificity_terms(waypoint))
+
+
 def validate_route(route_or_trip: dict[str, Any]) -> list[str]:
     waypoints = route_or_trip.get("waypoints") or []
     days = route_or_trip.get("days", len(waypoints))
@@ -75,6 +128,7 @@ def validate_route(route_or_trip: dict[str, Any]) -> list[str]:
         issues.append(f"route has {len(waypoints)} waypoints but days is {days}")
 
     natural_days = 0
+    no_human_interaction_days = 0
     city_streak = 0
     for index, waypoint in enumerate(waypoints, start=1):
         for field in REQUIRED_WAYPOINT_FIELDS:
@@ -98,6 +152,28 @@ def validate_route(route_or_trip: dict[str, Any]) -> list[str]:
             if _has_placeholder(waypoint.get(field)):
                 issues.append(f"day {index}: {field} contains placeholder content")
 
+        if not _has_text(waypoint.get("local_activity")):
+            issues.append(f"day {index}: local_activity is missing")
+        elif _has_placeholder(waypoint.get("local_activity")):
+            issues.append(f"day {index}: local_activity contains placeholder content")
+        elif _has_generic_interaction_text(waypoint.get("local_activity")):
+            issues.append(f"day {index}: local_activity is too generic")
+        elif not _mentions_route_specificity(waypoint.get("local_activity"), waypoint):
+            issues.append(f"day {index}: local_activity must mention the waypoint place, region, or landmark")
+
+        if _has_human_interaction(waypoint):
+            if _has_placeholder(waypoint.get("human_interaction")):
+                issues.append(f"day {index}: human_interaction contains placeholder content")
+            elif _has_generic_interaction_text(waypoint.get("human_interaction")):
+                issues.append(f"day {index}: human_interaction is too generic")
+            elif not _mentions_route_specificity(waypoint.get("human_interaction"), waypoint):
+                issues.append(f"day {index}: human_interaction must mention the waypoint place, region, or landmark")
+        else:
+            no_human_interaction_days += 1
+            reason = waypoint.get("no_human_interaction_reason")
+            if not _has_text(reason) or _has_placeholder(reason):
+                issues.append(f"day {index}: missing reason for no human interaction")
+
         if waypoint.get("is_natural_or_semi_natural"):
             natural_days += 1
 
@@ -113,14 +189,18 @@ def validate_route(route_or_trip: dict[str, Any]) -> list[str]:
     if 25 <= days <= 30 and natural_days < 10:
         issues.append(f"route needs at least 10 natural or semi-natural days; found {natural_days}")
 
+    max_no_human_interaction_days = int(days * 0.2)
+    if no_human_interaction_days > max_no_human_interaction_days:
+        issues.append(
+            f"route allows at most {max_no_human_interaction_days} no-human-interaction days; found {no_human_interaction_days}"
+        )
+
     return issues
 
 
 def validate_daily_context(trip: dict[str, Any], day: int) -> list[str]:
     issues = []
     waypoint = trip["waypoints"][day - 1]
-    if not waypoint.get("weather"):
-        issues.append(f"day {day}: weather is required before live image generation")
     if trip.get("label", {}).get("enabled", True) and not (waypoint.get("label_location") or waypoint.get("location")):
         issues.append(f"day {day}: label location is missing")
     return issues

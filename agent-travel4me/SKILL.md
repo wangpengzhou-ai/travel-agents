@@ -67,6 +67,7 @@ Avoid abstract role-only candidates such as "quiet mapkeeper", "little observer"
 - Visual style: use the fixed watercolor postcard style.
 - Day count: estimate automatically from distance, cap at 30 days, and let the user shorten it.
 - Place/date label: default to a model-drawn upper-left label unless the user opts out.
+- Label format: match `assets/style_samples/watercolor-postcard-rome.png`, for example `Rome    May 28, 2026`; do not use all caps, slash separators, uppercase month abbreviations, or `DAY XX`.
 
 ## Expected Outputs
 
@@ -99,11 +100,13 @@ If image generation is unavailable, the skill should still produce route data an
 4. Generate or prompt for a character reference before daily scene images. Ask the user to confirm it.
 5. Estimate journey length automatically, capped at 30 days. Confirm the estimate:
    - "我算了一下，从 {origin} 到 {destination}，我大概需要 {days} 天能抵达。你想让我更快一点吗？如果想，告诉我你希望几天内到，我会换更快的交通工具。"
-6. Keep the Agent as a small recurring traveler while the environment remains the main subject. It should interact with the environment sometimes, and quietly watch scenery sometimes.
+6. Keep the Agent as a small recurring traveler while the environment remains the main subject. Route planning must write a locally distinctive activity into each waypoint, and the Agent should usually interact with local people through that activity.
 7. Keep the Agent off-center and vary placement across the frame, with no repeated lower-left/lower-right standing poses.
-8. Use local environment variables for API credentials; avoid asking users to paste keys into chat.
-9. Set wallpaper only after the user explicitly allows it.
-10. Keep user-facing travel narration separate from production logs. The traveler's voice excludes prompt, metadata, verification, composition, file paths, and image-generation mechanics.
+8. Allow at most 20% of days to skip human interaction, chosen as sparse/remote exceptions only when a human presence would feel forced. Record the exception reason on the waypoint.
+9. Treat weather as optional enhancement context. If the day's local weather is already available or user-provided, write it into `waypoint.weather`; missing weather should not block prompt generation, local image generation, or host-native image generation.
+10. Use local environment variables for API credentials; avoid asking users to paste keys into chat.
+11. Set wallpaper only after the user explicitly allows it.
+12. Keep user-facing travel narration separate from production logs. The traveler's voice excludes prompt, metadata, verification, composition, file paths, and image-generation mechanics.
 
 ## Provider Priority
 
@@ -151,8 +154,10 @@ If coordinates are known or supplied by a geocoder, pass them with `--origin-lat
 Each live day should also have:
 
 - `label_location`: short place name for the upper-left label when the full route location is too long.
-- `label_date`: exact date text or ISO date when overriding the default trip start date.
-- `weather`: the day's local weather summary. Use the current agent's weather/search capability when available; otherwise ask the user or clearly state that weather is missing before live image generation.
+- `label_date`: exact date text or ISO date when overriding the default trip start date. The rendered label should use the full written date style, such as `May 28, 2026`.
+- `weather`: optional day's local weather summary. Use the current agent's weather/search capability when available, or accept a user-provided weather summary.
+
+Weather is nice-to-have prompt context. If it is missing, generate the daily prompt without a `Weather:` line and continue the workflow.
 
 ### 3. Generate Character Reference
 
@@ -233,8 +238,10 @@ Each waypoint must include:
 - landmarks
 - landscape type
 - local visual elements
+- local activity with concrete place, region, landmark, festival, food, craft, route ritual, or transport detail
+- human interaction with a concrete local role and place/region/landmark context, unless the day is one of the allowed sparse/remote exceptions
 - palette
-- weather
+- optional weather
 - upper-left label text
 - agent activity
 - prompt focus
@@ -248,10 +255,12 @@ Generated prompts must include:
 - recognizable landmarks
 - varied landscapes
 - local visual elements
-- current or user-provided weather reflected in sky, light, terrain/water, clothing details, and mood
+- current or user-provided weather reflected in sky, light, terrain/water, clothing details, and mood when available
 - consistent Agent identity
+- locally distinctive activity already planned on the waypoint
+- human interaction with local people on at least 80% of days
 - varied, context-aware Agent interaction
-- exactly one model-drawn upper-left place/date label, with consistent placement, margin, scale, ink color, and lettering style across days
+- exactly one model-drawn upper-left place/date label, with consistent placement, margin, scale, ink color, and lettering style across days; format it like `Rome    May 28, 2026`
 - wide-image layout with negative space, so the image can work as wallpaper if the user wants that output
 - negative constraints: no readable text outside the exact upper-left label, no logos, no watermark, no centered Agent, no close-up mascot shot
 

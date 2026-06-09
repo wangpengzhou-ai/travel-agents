@@ -16,9 +16,7 @@ def generate_for_day(trip_dir: Path, day: int, size: str = "2560x1440", dry_run:
     waypoint = trip["waypoints"][day - 1]
     day_dir = trip_dir / f"day_{day:03d}"
     day_dir.mkdir(parents=True, exist_ok=True)
-    prompt = build_wallpaper_prompt(trip, waypoint)
     prompt_context = build_prompt_context(trip, waypoint)
-    write_text(day_dir / "prompt.txt", prompt + "\n")
 
     metadata = {
         "day": day,
@@ -31,6 +29,15 @@ def generate_for_day(trip_dir: Path, day: int, size: str = "2560x1440", dry_run:
         "size": size,
         "dry_run": dry_run,
     }
+    daily_issues = validate_daily_context(trip, day)
+    if daily_issues:
+        metadata["status"] = "blocked_daily_context_invalid"
+        metadata["issues"] = daily_issues
+        write_json(day_dir / "metadata.json", metadata)
+        return metadata
+
+    prompt = build_wallpaper_prompt(trip, waypoint)
+    write_text(day_dir / "prompt.txt", prompt + "\n")
     if dry_run:
         write_json(day_dir / "metadata.json", metadata)
         return metadata

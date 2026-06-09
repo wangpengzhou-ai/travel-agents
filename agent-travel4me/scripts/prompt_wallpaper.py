@@ -16,7 +16,8 @@ STYLE_BIBLES = {
 
 NEGATIVE = "centered agent, close-up agent, mascot poster, repeated lower-corner standing pose, extra animals, readable text outside the exact upper-left travel label, logos, watermarks, wrong landmarks, generic tourist collage"
 
-MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"]
+MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+NO_HUMAN_INTERACTION_VALUES = {"none", "no human interaction", "n/a", "na"}
 
 
 def _parse_date(value: str | None) -> date | None:
@@ -33,18 +34,27 @@ def _display_date(trip: dict[str, Any], waypoint: dict[str, Any]) -> str:
     if explicit:
         parsed = _parse_date(str(explicit))
         if parsed:
-            return f"{MONTHS[parsed.month - 1]} {parsed.day:02d} {parsed.year}"
+            return f"{MONTHS[parsed.month - 1]} {parsed.day}, {parsed.year}"
         return str(explicit)
 
     start = _parse_date(str(trip.get("start_date") or trip.get("created_at") or ""))
     if not start:
         return ""
     current = start + timedelta(days=int(waypoint.get("day", 1)) - 1)
-    return f"{MONTHS[current.month - 1]} {current.day:02d} {current.year}"
+    return f"{MONTHS[current.month - 1]} {current.day}, {current.year}"
 
 
 def _display_location(waypoint: dict[str, Any]) -> str:
-    return str(waypoint.get("label_location") or waypoint.get("location") or "Travel Day")
+    value = str(waypoint.get("label_location") or waypoint.get("location") or "Travel Day").strip()
+    if not value:
+        return "Travel Day"
+    words = []
+    for word in value.split():
+        if word.islower() or word.isupper():
+            words.append(word[:1].upper() + word[1:].lower())
+        else:
+            words.append(word[:1].upper() + word[1:])
+    return " ".join(words)
 
 
 def _weather_text(waypoint: dict[str, Any]) -> str | None:
@@ -69,7 +79,7 @@ def _weather_text(waypoint: dict[str, Any]) -> str | None:
 def build_prompt_context(trip: dict[str, Any], waypoint: dict[str, Any]) -> dict[str, Any]:
     display_date = _display_date(trip, waypoint)
     label_location = _display_location(waypoint)
-    label_text = f"{label_location.upper()} / {display_date}" if display_date else label_location.upper()
+    label_text = f"{label_location}    {display_date}" if display_date else label_location
     return {
         "label_location": label_location,
         "label_date": display_date,
@@ -109,6 +119,15 @@ def build_wallpaper_prompt(trip: dict[str, Any], waypoint: dict[str, Any]) -> st
             f"Weather: {context['weather_text']}. Let the weather shape the sky, light, water or ground texture, clothing details, and mood."
         )
 
+    human_interaction = str(waypoint.get("human_interaction") or "").strip()
+    human_interaction_lines = []
+    if human_interaction.lower().rstrip(".") not in NO_HUMAN_INTERACTION_VALUES and human_interaction:
+        human_interaction_lines.append(f"Human interaction: {human_interaction}.")
+    elif waypoint.get("no_human_interaction_reason"):
+        human_interaction_lines.append(
+            f"Human interaction: none in this scene because {waypoint['no_human_interaction_reason']}. Do not add forced people."
+        )
+
     return "\n".join(
         [
             f"Create a 16:9 travel wallpaper in {style_bible}.",
@@ -119,9 +138,11 @@ def build_wallpaper_prompt(trip: dict[str, Any], waypoint: dict[str, Any]) -> st
             *weather_line,
             f"Journey continuity: the same tiny agent traveler is passing through this place on the way from {origin} to {destination}.",
             f"Agent: {character_identity}. The agent is small, off-center, naturally participating in the local environment, occupying less than 6% of the image.",
+            f"Local activity: {waypoint.get('local_activity', waypoint.get('agent_activity', 'quietly observing local life'))}.",
             f"Agent activity: {waypoint.get('agent_activity', 'quietly watching the scenery')}.",
+            *human_interaction_lines,
             f"Agent placement: {waypoint.get('agent_position', 'small off-center traveler integrated with the scene')}.",
-            f"Upper-left travel label: draw exactly one small hand-lettered postcard label in the upper-left safe area. Exact text: \"{context['label_text']}\". Keep the same label position, margin, scale, ink color, and lettering style across every day. Make it feel painted or printed into the artwork, not like a digital overlay.",
+            f"Upper-left travel label: draw exactly one small hand-lettered postcard label in the upper-left safe area. Exact text: \"{context['label_text']}\". Match the watercolor sample treatment: title-case place name, full written date, no slash, no all-caps text, no day number. Keep the same label position, margin, scale, ink color, and lettering style across every day. Make it feel painted or printed into the artwork, not like a digital overlay.",
             "Composition: wide landscape wallpaper, destination and environment are the main subject, clear negative space for desktop icons.",
             f"Prompt focus: {waypoint.get('prompt_focus', waypoint.get('location', 'travel scene'))}.",
             f"Avoid: {NEGATIVE}.",
