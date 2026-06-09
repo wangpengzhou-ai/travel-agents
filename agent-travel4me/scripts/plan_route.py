@@ -18,7 +18,7 @@ LANDSCAPE_SEQUENCE = [
         "role": "departure from the user's current place",
         "local_visual_elements": ["recognizable local skyline", "morning light", "departure object", "street texture"],
         "local_activity": "starting the journey with a small local departure ritual",
-        "agent_activity": "checking the route before departure",
+        "agent_activity": "pinning a tiny departure ticket to the backpack before departure",
         "human_interaction": "asking a local shopkeeper or station worker for a first route tip",
         "is_natural_or_semi_natural": False,
     },
@@ -27,7 +27,14 @@ LANDSCAPE_SEQUENCE = [
         "role": "first soft transition into open water or river scenery",
         "local_visual_elements": ["water reflections", "riverbank plants", "small boat or bridge", "mist or open sky"],
         "local_activity": "joining a quiet riverside crossing or morning boat routine",
-        "agent_activity": "reading a map beside the water",
+        "agent_activity": "watching a small boat rope being tied beside the water",
+        "agent_activity_options": [
+            "watching a small boat rope being tied beside the water",
+            "holding a tiny crossing token under the bridge shadow",
+            "sitting on a low dock while reflections pass",
+            "sheltering a postcard pouch from river mist",
+            "pointing a tiny camera toward the morning crossing",
+        ],
         "human_interaction": "listening to a boat operator or riverside vendor point out the next crossing",
         "is_natural_or_semi_natural": True,
     },
@@ -37,6 +44,13 @@ LANDSCAPE_SEQUENCE = [
         "local_visual_elements": ["winding path", "regional plants", "distant ridges", "stone or soil texture"],
         "local_activity": "following a regional walking path and checking handmade trail signs",
         "agent_activity": "sketching the terrain from a low resting spot",
+        "agent_activity_options": [
+            "sketching the terrain from a low resting spot",
+            "tying a tiny scarf against the highland wind",
+            "counting painted trail stones near the path edge",
+            "brushing dust from a small boot beside regional plants",
+            "holding a pressed leaf beside the winding path",
+        ],
         "human_interaction": "greeting a local guide, shepherd, or trail caretaker on the path",
         "is_natural_or_semi_natural": True,
     },
@@ -45,7 +59,14 @@ LANDSCAPE_SEQUENCE = [
         "role": "passing through a place with visible local architecture",
         "local_visual_elements": ["local facade materials", "market awning", "balcony or arcade", "street objects"],
         "local_activity": "pausing at a neighborhood market or street stall",
-        "agent_activity": "resting under shade with a small drink or map",
+        "agent_activity": "resting under shade with a small local drink",
+        "agent_activity_options": [
+            "resting under shade with a small local drink",
+            "balancing a tiny paper snack bag under the market awning",
+            "peeking from an arcade column toward the street stall",
+            "holding a small coin pouch beside local facade tiles",
+            "sitting near a balcony shadow with a postcard pouch",
+        ],
         "human_interaction": "buying a small local drink or snack from a stall owner",
         "is_natural_or_semi_natural": False,
     },
@@ -55,6 +76,13 @@ LANDSCAPE_SEQUENCE = [
         "local_visual_elements": ["rock faces", "large sky", "trail markers", "wind-shaped plants"],
         "local_activity": "following regional trail markers through a dramatic natural pass",
         "agent_activity": "standing small on a trail while the landscape dominates",
+        "agent_activity_options": [
+            "standing small on a trail while the landscape dominates",
+            "tightening a tiny backpack strap beside wind-shaped plants",
+            "placing one small pebble on a trail cairn",
+            "holding a scarf against the cliff wind near a marker",
+            "crouching beside a trail marker while rock faces tower above",
+        ],
         "human_interaction": "asking a trail caretaker or passing hiker about the safest path ahead",
         "is_natural_or_semi_natural": True,
     },
@@ -64,6 +92,13 @@ LANDSCAPE_SEQUENCE = [
         "local_visual_elements": ["open horizon", "track or road", "sparse shelter", "weathered local material"],
         "local_activity": "crossing a quiet open-country route and reading regional road markers",
         "agent_activity": "sorting the backpack in a patch of shade",
+        "agent_activity_options": [
+            "sorting the backpack in a patch of shade",
+            "brushing dust from a tiny shoe near the open track",
+            "sipping water beside a sparse roadside shelter",
+            "tying a scarf while the open horizon fills the frame",
+            "holding a small weathered token found by the road edge",
+        ],
         "human_interaction": "thanking a local driver or roadside caretaker for directions",
         "can_skip_human_interaction": True,
         "no_human_interaction_reason": "remote open-country crossing where adding a person would feel forced",
@@ -74,7 +109,14 @@ LANDSCAPE_SEQUENCE = [
         "role": "water crossing",
         "local_visual_elements": ["ferry rail", "harbor lights", "seabirds or wind", "distant shore"],
         "local_activity": "boarding a local ferry or watching harbor work from the rail",
-        "agent_activity": "waiting by a ferry rail with a folded map",
+        "agent_activity": "waiting by a ferry rail with a wind-creased boarding ticket",
+        "agent_activity_options": [
+            "waiting by a ferry rail with a wind-creased boarding ticket",
+            "steadying a postcard pouch against the harbor wind",
+            "looking up at a small signal light near the ferry queue",
+            "sitting near a coil of rope while harbor lights come on",
+            "holding a tiny warm cup beside the ferry rail",
+        ],
         "human_interaction": "showing the route card to a ferry attendant or harbor worker",
         "is_natural_or_semi_natural": True,
     },
@@ -125,6 +167,17 @@ def _landscape_for(day_index: int, total_days: int) -> dict[str, Any]:
         return LANDSCAPE_SEQUENCE[-1]
     inner = LANDSCAPE_SEQUENCE[1:-1]
     return inner[(day_index - 1) % len(inner)]
+
+
+def _agent_activity_for(template: dict[str, Any], day_index: int, total_days: int) -> str:
+    options = template.get("agent_activity_options")
+    if not options:
+        return template["agent_activity"]
+    if day_index == 0 or day_index == total_days - 1:
+        return str(options[0])
+    inner_len = max(1, len(LANDSCAPE_SEQUENCE) - 2)
+    cycle = (day_index - 1) // inner_len
+    return str(options[cycle % len(options)])
 
 
 def _no_human_interaction_days(origin: str, destination: str, total_days: int) -> set[int]:
@@ -212,7 +265,7 @@ def plan_route(
                 "local_visual_elements": template["local_visual_elements"],
                 "palette": ["locally appropriate colors", "route-specific light", "style-consistent accents"],
                 "local_activity": template["local_activity"],
-                "agent_activity": template["agent_activity"],
+                "agent_activity": _agent_activity_for(template, idx, days),
                 "human_interaction": "none" if skip_human_interaction else template["human_interaction"],
                 "no_human_interaction_reason": template.get("no_human_interaction_reason") if skip_human_interaction else None,
                 "agent_position": "small off-center traveler naturally participating in the local environment",

@@ -41,7 +41,7 @@ Example first-run opener:
 ```text
 我来替你开始一段旅程。你想让我从哪里出发，最后去哪里？
 我先给你 3 个小旅行者形象，你可以直接选一个，也可以改：
-1. 戴红围巾的小橘猫，背着卷起来的小地图
+1. 戴红围巾的小橘猫，背着轻便小背包
 2. 穿蓝色雨衣的小白狗，带一个防水小背包
 3. 圆滚滚的小邮差机器人，胸前挂着一只旧指南针
 ```
@@ -54,8 +54,9 @@ Each candidate should include:
 
 - A concrete subject, such as a small cat, small dog, tiny robot, small bird, or other mascot-like traveler.
 - One stable appearance anchor, such as color, scarf, raincoat, hat, or bag.
-- One travel prop, such as a folded map, tiny backpack, postcard pouch, compass, sketchbook, or ticket sleeve.
-- One small behavior that fits travel, such as checking a map, waiting by a boat, watching weather, collecting tickets, or sketching landmarks.
+- One travel prop, such as a tiny backpack, postcard pouch, compass, sketchbook, ticket sleeve, or folded map.
+- One small behavior that fits travel, such as waiting by a boat, watching weather, collecting tickets, sketching landmarks, or tasting a local snack.
+- Do not make a map the default fixed prop unless the user explicitly asks for it. Map-checking should be occasional, not the Agent's repeated daily action.
 
 Avoid abstract role-only candidates such as "quiet mapkeeper", "little observer", or "small travel companion" unless they also have a concrete body and visible anchors.
 
@@ -183,7 +184,9 @@ Before live image generation, validate route quality:
 python scripts/validate_route.py --trip-dir <trip_dir>
 ```
 
-If validation fails because the route still contains placeholders, enrich the route with real places, coordinates, landmarks, local visual elements, and natural/semi-natural days, save it as JSON, then apply it:
+Default validation blocks only route structure and generation-readiness errors. It may also print quality warnings, such as repeated Agent actions or too many map/route-card activities; treat those as route improvement suggestions unless the user wants strict review. Use `--strict-quality` when quality warnings should fail validation too.
+
+If validation fails because the route still contains placeholders, missing required route data, or other blocking errors, enrich the route with real places, coordinates, landmarks, local visual elements, and natural/semi-natural days, save it as JSON, then apply it:
 
 ```bash
 python scripts/apply_route_enrichment.py \

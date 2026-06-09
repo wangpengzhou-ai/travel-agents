@@ -49,6 +49,8 @@ python scripts/validate_route.py --trip-dir <trip_dir>
 
 Block live image generation when validation reports unresolved placeholders, generic local activity, generic human interaction, missing coordinates, missing landmarks, missing local activity, missing human interaction without a valid exception reason, more than 20% no-human-interaction days, too few natural/semi-natural days, or three consecutive city-only days. Dry-run prompt generation is still allowed for route debugging.
 
+Validation may also report quality warnings, such as repeated exact `agent_activity` text, too many map/route-card Agent activities, or local activities that do not explicitly mention the waypoint place, region, or landmark. These warnings do not block live generation by default. Pass `--strict-quality` when those warnings should fail validation.
+
 Before generating any final daily image prompt or asking a host-native image tool to generate, you may run the daily context gate for required label context:
 
 ```bash

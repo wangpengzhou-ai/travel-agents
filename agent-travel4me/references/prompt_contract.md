@@ -102,6 +102,8 @@ Rules:
 
 - Use at most one small activity per image.
 - Keep activities varied across eating, transport, resting, observing, and route-checking scenes.
+- Do not repeat the exact same `agent_activity` text across multiple days.
+- Use maps or route cards sparingly, at most about 25% of days. Do not make map-checking the repeated visible action unless the user explicitly made the map the Agent's signature item.
 - Allow quiet scenery-watching only as part of the 20% no-human-interaction exception, or as a background mood while the Agent still has a small human interaction.
 - The Agent occupies less than 6% of image area.
 - The Agent is off-center.

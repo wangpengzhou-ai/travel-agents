@@ -42,6 +42,10 @@ GENERIC_INTERACTION_PATTERNS = [
     re.compile(r"\bregional (activity|person|people|guide|path|ritual|marker)\b", re.IGNORECASE),
     re.compile(r"\broute-specific\b", re.IGNORECASE),
 ]
+MAP_ACTIVITY_PATTERNS = [
+    re.compile(r"\b(map|route card|route page|route map|folded map)\b", re.IGNORECASE),
+    re.compile(r"\b(checking|reading|marking|studying)\b.*\b(route|map)\b", re.IGNORECASE),
+]
 
 
 def _has_placeholder(value: Any) -> bool:
@@ -91,6 +95,18 @@ def _has_generic_interaction_text(value: Any) -> bool:
     return any(pattern.search(value) for pattern in GENERIC_INTERACTION_PATTERNS)
 
 
+def _uses_map_or_route_prop(value: Any) -> bool:
+    if not isinstance(value, str):
+        return False
+    return any(pattern.search(value) for pattern in MAP_ACTIVITY_PATTERNS)
+
+
+def _normalized_activity(value: Any) -> str | None:
+    if not isinstance(value, str) or not value.strip():
+        return None
+    return re.sub(r"\s+", " ", value.strip().lower())
+
+
 def _specificity_terms(waypoint: dict[str, Any]) -> list[str]:
     raw_terms: list[str] = []
     for field in ("location", "country_or_region"):
@@ -117,62 +133,70 @@ def _mentions_route_specificity(value: Any, waypoint: dict[str, Any]) -> bool:
     return any(term in normalized for term in _specificity_terms(waypoint))
 
 
-def validate_route(route_or_trip: dict[str, Any]) -> list[str]:
+def validate_route_report(route_or_trip: dict[str, Any]) -> dict[str, list[str]]:
     waypoints = route_or_trip.get("waypoints") or []
     days = route_or_trip.get("days", len(waypoints))
-    issues: list[str] = []
+    errors: list[str] = []
+    warnings: list[str] = []
 
     if not waypoints:
-        return ["route has no waypoints"]
+        return {"errors": ["route has no waypoints"], "warnings": []}
     if len(waypoints) != days:
-        issues.append(f"route has {len(waypoints)} waypoints but days is {days}")
+        errors.append(f"route has {len(waypoints)} waypoints but days is {days}")
 
     natural_days = 0
     no_human_interaction_days = 0
+    map_activity_days = 0
+    agent_activity_counts: dict[str, int] = {}
     city_streak = 0
     for index, waypoint in enumerate(waypoints, start=1):
         for field in REQUIRED_WAYPOINT_FIELDS:
             if field not in waypoint:
-                issues.append(f"day {index}: missing {field}")
+                errors.append(f"day {index}: missing {field}")
 
         if _has_placeholder(waypoint.get("location")):
-            issues.append(f"day {index}: location is not a real resolved place")
+            errors.append(f"day {index}: location is not a real resolved place")
         if _has_placeholder(waypoint.get("country_or_region")):
-            issues.append(f"day {index}: country_or_region is unresolved")
+            errors.append(f"day {index}: country_or_region is unresolved")
         if not _valid_coordinates(waypoint.get("coordinates")):
-            issues.append(f"day {index}: coordinates are missing or invalid")
+            errors.append(f"day {index}: coordinates are missing or invalid")
 
         landmarks = waypoint.get("landmarks")
         if not isinstance(landmarks, list) or not landmarks:
-            issues.append(f"day {index}: landmarks are missing")
+            errors.append(f"day {index}: landmarks are missing")
         elif _has_placeholder(landmarks):
-            issues.append(f"day {index}: landmarks contain placeholders")
+            errors.append(f"day {index}: landmarks contain placeholders")
 
         for field in ("local_visual_elements", "palette", "agent_activity", "prompt_focus"):
             if _has_placeholder(waypoint.get(field)):
-                issues.append(f"day {index}: {field} contains placeholder content")
+                errors.append(f"day {index}: {field} contains placeholder content")
+        if _uses_map_or_route_prop(waypoint.get("agent_activity")):
+            map_activity_days += 1
+        normalized_agent_activity = _normalized_activity(waypoint.get("agent_activity"))
+        if normalized_agent_activity:
+            agent_activity_counts[normalized_agent_activity] = agent_activity_counts.get(normalized_agent_activity, 0) + 1
 
         if not _has_text(waypoint.get("local_activity")):
-            issues.append(f"day {index}: local_activity is missing")
+            errors.append(f"day {index}: local_activity is missing")
         elif _has_placeholder(waypoint.get("local_activity")):
-            issues.append(f"day {index}: local_activity contains placeholder content")
+            errors.append(f"day {index}: local_activity contains placeholder content")
         elif _has_generic_interaction_text(waypoint.get("local_activity")):
-            issues.append(f"day {index}: local_activity is too generic")
+            errors.append(f"day {index}: local_activity is too generic")
         elif not _mentions_route_specificity(waypoint.get("local_activity"), waypoint):
-            issues.append(f"day {index}: local_activity must mention the waypoint place, region, or landmark")
+            warnings.append(f"day {index}: local_activity should mention the waypoint place, region, or landmark")
 
         if _has_human_interaction(waypoint):
             if _has_placeholder(waypoint.get("human_interaction")):
-                issues.append(f"day {index}: human_interaction contains placeholder content")
+                errors.append(f"day {index}: human_interaction contains placeholder content")
             elif _has_generic_interaction_text(waypoint.get("human_interaction")):
-                issues.append(f"day {index}: human_interaction is too generic")
+                errors.append(f"day {index}: human_interaction is too generic")
             elif not _mentions_route_specificity(waypoint.get("human_interaction"), waypoint):
-                issues.append(f"day {index}: human_interaction must mention the waypoint place, region, or landmark")
+                warnings.append(f"day {index}: human_interaction should mention the waypoint place, region, or landmark")
         else:
             no_human_interaction_days += 1
             reason = waypoint.get("no_human_interaction_reason")
             if not _has_text(reason) or _has_placeholder(reason):
-                issues.append(f"day {index}: missing reason for no human interaction")
+                errors.append(f"day {index}: missing reason for no human interaction")
 
         if waypoint.get("is_natural_or_semi_natural"):
             natural_days += 1
@@ -180,22 +204,40 @@ def validate_route(route_or_trip: dict[str, Any]) -> list[str]:
         if _is_city_only(waypoint):
             city_streak += 1
             if city_streak >= 3:
-                issues.append(f"day {index}: three consecutive city-only days")
+                errors.append(f"day {index}: three consecutive city-only days")
         else:
             city_streak = 0
 
     if 15 <= days <= 24 and natural_days < 7:
-        issues.append(f"route needs at least 7 natural or semi-natural days; found {natural_days}")
+        errors.append(f"route needs at least 7 natural or semi-natural days; found {natural_days}")
     if 25 <= days <= 30 and natural_days < 10:
-        issues.append(f"route needs at least 10 natural or semi-natural days; found {natural_days}")
+        errors.append(f"route needs at least 10 natural or semi-natural days; found {natural_days}")
+
+    max_map_activity_days = max(1, days // 4)
+    if map_activity_days > max_map_activity_days:
+        warnings.append(
+            f"route uses map or route-card agent activities on {map_activity_days} days; allowed at most {max_map_activity_days}"
+        )
+    repeated_agent_activities = [
+        activity for activity, count in sorted(agent_activity_counts.items()) if count > 1
+    ]
+    if repeated_agent_activities:
+        preview = "; ".join(repeated_agent_activities[:3])
+        if len(repeated_agent_activities) > 3:
+            preview += "; ..."
+        warnings.append(f"route repeats exact agent_activity text: {preview}")
 
     max_no_human_interaction_days = int(days * 0.2)
     if no_human_interaction_days > max_no_human_interaction_days:
-        issues.append(
+        errors.append(
             f"route allows at most {max_no_human_interaction_days} no-human-interaction days; found {no_human_interaction_days}"
         )
 
-    return issues
+    return {"errors": errors, "warnings": warnings}
+
+
+def validate_route(route_or_trip: dict[str, Any]) -> list[str]:
+    return validate_route_report(route_or_trip)["errors"]
 
 
 def validate_daily_context(trip: dict[str, Any], day: int) -> list[str]:
@@ -211,6 +253,7 @@ def main() -> None:
     parser.add_argument("--trip-dir")
     parser.add_argument("--route")
     parser.add_argument("--require-day-context", type=int)
+    parser.add_argument("--strict-quality", action="store_true", help="Treat quality warnings as blocking validation issues.")
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
 
@@ -218,19 +261,33 @@ def main() -> None:
         raise SystemExit("pass --trip-dir or --route")
 
     data = load_trip(Path(args.trip_dir).expanduser()) if args.trip_dir else read_json(Path(args.route))
-    issues = validate_route(data)
+    report = validate_route_report(data)
     if args.require_day_context:
-        issues.extend(validate_daily_context(data, args.require_day_context))
+        report["errors"].extend(validate_daily_context(data, args.require_day_context))
+    issues = report["errors"] + report["warnings"] if args.strict_quality else report["errors"]
 
-    result = {"valid": not issues, "issues": issues}
+    result = {
+        "valid": not issues,
+        "issues": issues,
+        "errors": report["errors"],
+        "warnings": report["warnings"],
+        "strict_quality": args.strict_quality,
+    }
     if args.json:
         print_json(result)
     else:
-        if issues:
-            for issue in issues:
+        if report["errors"]:
+            for issue in report["errors"]:
                 print(issue)
-        else:
+        if report["warnings"]:
+            for warning in report["warnings"]:
+                print(f"warning: {warning}")
+        if not report["errors"] and not report["warnings"]:
             print("route valid")
+        elif not issues:
+            print("route valid with warnings")
+        if args.strict_quality and report["warnings"]:
+            print("strict quality mode treats warnings as validation failures")
     raise SystemExit(0 if not issues else 2)
 
 
