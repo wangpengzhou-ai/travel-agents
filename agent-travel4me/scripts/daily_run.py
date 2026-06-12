@@ -4,10 +4,9 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from common import load_trip, save_trip, write_json
+from common import load_trip, save_trip
 from generate_wallpaper import generate_for_day
 from set_wallpaper import set_wallpaper
-from validate_route import validate_daily_context, validate_route
 
 
 def apply_daily_context(trip: dict, day: int, weather: str | None, label_date: str | None, label_location: str | None) -> bool:
@@ -48,20 +47,11 @@ def main() -> None:
         if apply_daily_context(trip, day, args.weather, args.label_date, args.label_location):
             save_trip(trip_dir, trip)
             trip = load_trip(trip_dir)
-        validation_issues = validate_daily_context(trip, day)
-        if not args.dry_run:
-            validation_issues = validate_route(trip)
-            validation_issues.extend(validate_daily_context(trip, day))
-        if validation_issues:
+        result = generate_for_day(trip_dir, day, args.size, args.dry_run)
+        blocked = str(result.get("status", "")).startswith("blocked_")
+        if blocked:
             exit_code = 2
-            result = {
-                "status": "blocked_route_or_daily_context_invalid",
-                "day": day,
-                "days": trip["days"],
-                "issues": validation_issues,
-            }
         else:
-            result = generate_for_day(trip_dir, day, args.size, args.dry_run)
             wallpaper_path = result.get("wallpaper_path")
             if args.set_wallpaper and wallpaper_path and not args.dry_run:
                 try:

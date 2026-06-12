@@ -36,17 +36,17 @@ def generate_for_day(trip_dir: Path, day: int, size: str = "2560x1440", dry_run:
         write_json(day_dir / "metadata.json", metadata)
         return metadata
 
+    if not dry_run:
+        validation_issues = validate_route(trip)
+        if validation_issues:
+            metadata["status"] = "blocked_route_or_daily_context_invalid"
+            metadata["issues"] = validation_issues
+            write_json(day_dir / "metadata.json", metadata)
+            return metadata
+
     prompt = build_wallpaper_prompt(trip, waypoint)
     write_text(day_dir / "prompt.txt", prompt + "\n")
     if dry_run:
-        write_json(day_dir / "metadata.json", metadata)
-        return metadata
-
-    validation_issues = validate_route(trip)
-    validation_issues.extend(validate_daily_context(trip, day))
-    if validation_issues:
-        metadata["status"] = "blocked_route_or_daily_context_invalid"
-        metadata["issues"] = validation_issues
         write_json(day_dir / "metadata.json", metadata)
         return metadata
 

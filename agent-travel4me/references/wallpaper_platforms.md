@@ -4,15 +4,9 @@ Wallpaper setting is best-effort and requires a local desktop session.
 
 ## macOS
 
-Preferred:
+Current implementation uses AppleScript through `osascript`.
 
-- AppKit `NSWorkspace.setDesktopImageURL`.
-
-Fallback:
-
-- AppleScript/JXA through `osascript`.
-
-AppleScript/JXA may require user approval in Privacy & Security for controlling other apps.
+AppleScript may require user approval in Privacy & Security for controlling other apps.
 
 ## Windows
 
