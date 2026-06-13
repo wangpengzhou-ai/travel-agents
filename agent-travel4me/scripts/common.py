@@ -88,3 +88,7 @@ def script_dir() -> Path:
 
 def skill_dir() -> Path:
     return script_dir().parent
+
+
+def style_sample_path() -> Path:
+    return skill_dir() / "assets" / "style_samples" / "watercolor-postcard-rome.png"

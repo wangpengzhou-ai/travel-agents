@@ -142,7 +142,7 @@ def build_wallpaper_prompt(trip: dict[str, Any], waypoint: dict[str, Any]) -> st
             f"Agent activity: {waypoint.get('agent_activity', 'quietly watching the scenery')}.",
             *human_interaction_lines,
             f"Agent placement: {waypoint.get('agent_position', 'small off-center traveler integrated with the scene')}.",
-            f"Upper-left travel label: draw exactly one small hand-lettered postcard label in the upper-left safe area. Exact text: \"{context['label_text']}\". Match the watercolor sample treatment: title-case place name, full written date, no slash, no all-caps text, no day number. Keep the same label position, margin, scale, ink color, and lettering style across every day. Make it feel painted or printed into the artwork, not like a digital overlay.",
+            f"Upper-left travel label: draw exactly one small hand-lettered postcard label in the upper-left safe area. Exact text: \"{context['label_text']}\". Match the bundled sample at assets/style_samples/watercolor-postcard-rome.png: title-case place name, full written date, no slash, no all-caps text, no day number. Keep the same label position, margin, scale, ink color, and lettering style across every day. Make it feel painted or printed into the artwork, not like a digital overlay.",
             "Composition: wide landscape wallpaper, destination and environment are the main subject, clear negative space for desktop icons.",
             f"Prompt focus: {waypoint.get('prompt_focus', waypoint.get('location', 'travel scene'))}.",
             f"Avoid: {NEGATIVE}.",

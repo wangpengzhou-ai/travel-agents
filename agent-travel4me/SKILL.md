@@ -145,6 +145,8 @@ Use `watercolor_postcard` for every journey. Read `references/style_presets.md` 
 
 - `watercolor_postcard`: `assets/style_samples/watercolor-postcard-rome.png`
 
+Do not use the repository-root `style-samples/` folder for runtime style guidance; it contains legacy exploration samples.
+
 ### 1. Detect
 
 ```bash

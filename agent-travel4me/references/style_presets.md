@@ -14,6 +14,8 @@ Sample:
 
 - `assets/style_samples/watercolor-postcard-rome.png`
 
+The repository-root `style-samples/` folder is legacy exploration material, not the runtime style source.
+
 ## Label Treatment
 
 The upper-left place/date label is part of the generated image. Keep the same placement, margin, ink color, scale, and lettering style across daily images. Forbid readable text outside that exact label.

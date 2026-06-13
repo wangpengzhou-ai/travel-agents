@@ -25,14 +25,24 @@ def selected_provider() -> str | None:
     return None
 
 
-def generate_image(prompt: str, out_path: Path, size: str = "2560x1440", provider: str | None = None, reference_image: Path | None = None) -> dict[str, Any]:
+def generate_image(
+    prompt: str,
+    out_path: Path,
+    size: str = "2560x1440",
+    provider: str | None = None,
+    reference_image: Path | None = None,
+    reference_images: list[Path] | None = None,
+) -> dict[str, Any]:
     provider = provider or selected_provider()
+    references = list(reference_images or [])
+    if reference_image and reference_image not in references:
+        references.append(reference_image)
     if provider == "openai":
         return generate_openai(prompt, out_path, size)
     if provider == "gemini":
         return generate_gemini(prompt, out_path, size)
     if provider == "seedream":
-        return generate_seedream(prompt, out_path, size, reference_image)
+        return generate_seedream(prompt, out_path, size, references)
     raise ImageProviderError(
         "No image provider is configured. Set OPENAI_API_KEY, GOOGLE_API_KEY/GEMINI_API_KEY, "
         "SEEDREAM_API_KEY, or TRAVEL4ME_IMAGE_COMMAND; or use the surrounding agent's native image tool."
@@ -110,20 +120,22 @@ def generate_gemini(prompt: str, out_path: Path, size: str) -> dict[str, Any]:
     raise ImageProviderError(f"Gemini response had no inline image data: {response}")
 
 
-def generate_seedream(prompt: str, out_path: Path, size: str, reference_image: Path | None = None) -> dict[str, Any]:
+def generate_seedream(prompt: str, out_path: Path, size: str, reference_images: list[Path] | None = None) -> dict[str, Any]:
     command = os.environ.get("TRAVEL4ME_IMAGE_COMMAND")
     if not command:
         raise ImageProviderError(
             "Seedream direct API wiring is deployment-specific. Set TRAVEL4ME_IMAGE_COMMAND to a command "
             "that reads JSON from stdin and writes the image to the provided output path."
         )
+    references = reference_images or []
     payload = {
         "provider": "seedream",
         "model": os.environ.get("SEEDREAM_MODEL", "latest"),
         "prompt": prompt,
         "size": size,
         "output_path": str(out_path),
-        "reference_image": str(reference_image) if reference_image else None,
+        "reference_image": str(references[0]) if references else None,
+        "reference_images": [str(path) for path in references],
     }
     result = subprocess.run(command, input=json.dumps(payload), text=True, shell=True, capture_output=True, timeout=300, check=False)
     if result.returncode != 0:
