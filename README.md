@@ -1,4 +1,4 @@
-# agent-travel4me
+<img width="1672" height="941" alt="ig_037415fcb4035463016a2e1f163db0819191bb256532fbfa9e" src="https://github.com/user-attachments/assets/613f2009-666a-4ab6-aaa8-9d894106b3fb" /><img width="1672" height="941" alt="ig_037415fcb4035463016a2e1d7f61cc8191b38266cf463a2bcc" src="https://github.com/user-attachments/assets/0a2ba1c6-15f4-4627-bce1-923d28a69aef" /># agent-travel4me
 
 `agent-travel4me` 是一个让你的 Agent 独自远行、为你捕捉远方风景的日常互动项目。
 
@@ -11,9 +11,16 @@
 * **⚙️ 全自动的无感陪伴**：从查看地图、规划路线到每天独自前行，这一切都由你的 Agent 自己搞定。在得到你的允许后，它还会在每天清晨悄悄把你的电脑壁纸，换成它昨晚刚刚寄回的最新风景。
 * **🔌 加载即用，无需配置**：它能自动适应你当前的环境，不管是直接在聊天框里把明信片递给你，还是默默存在本地，都不需要你做任何复杂的调整。
 
-<img width="1672" height="941" alt="ig_037415fcb4035463016a2e3c58d560819190720e2e2032baa3" src="https://github.com/user-attachments/assets/fa72e334-2279-445a-9db3-143db79e129d" />
+|  |  |  |  |
+|---|---|---|---|
+| <img width="1672" height="941" alt="ig_037415fcb4035463016a2e3c58d560819190720e2e2032baa3" src="https://github.com/user-attachments/assets/fa72e334-2279-445a-9db3-143db79e129d" /> | <img width="1672" height="941" alt="ig_037415fcb4035463016a2e1d7f61cc8191b38266cf463a2bcc" src="https://github.com/user-attachments/assets/872c0cc4-35f0-464a-8fae-de8731871f9c" /> | <img width="1672" height="941" alt="ig_037415fcb4035463016a2e1f163db0819191bb256532fbfa9e" src="https://github.com/user-attachments/assets/4c73fdd3-c3d6-495d-90d0-25c290a9a13b" /> | <img width="1672" height="941" alt="ig_037415fcb4035463016a2e1c58843c8191a74536a5c7f4dd04" src="https://github.com/user-attachments/assets/aa883138-b4ff-49f4-804c-e2e65103de6f" /> |
+| ![](image5.png) | ![](image6.png) | ![](image7.png) | ![](image8.png) |
 
-<img width="1672" height="941" alt="ig_037415fcb4035463016a2e1c58843c8191a74536a5c7f4dd04" src="https://github.com/user-attachments/assets/aa883138-b4ff-49f4-804c-e2e65103de6f" />
+
+
+
+
+
 
 ---
 
