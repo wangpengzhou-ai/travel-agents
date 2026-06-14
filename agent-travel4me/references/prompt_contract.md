@@ -38,9 +38,10 @@ Rules:
 - Keep the same margin, scale, ink color, and lettering style across days.
 - Make the label feel painted or printed into the postcard artwork.
 - Keep all other areas free of readable text.
-- Match `assets/style_samples/watercolor-postcard-rome.png`: title-case place name, then a full written date, such as `Rome    May 28, 2026`.
+- Match `assets/style_samples/upper-left-label-date-reference.png`: title-case place name, then a full written date, such as `Rome    May 28, 2026`.
 - Do not use all-caps place names, slash separators, uppercase month abbreviations, or `DAY XX` labels.
 - Prefer short label locations when the route location name is too long.
+- Use the label-only reference for runtime image references; do not pass the full postcard sample only to control label lettering.
 
 ## Weather Context
 
@@ -136,7 +137,7 @@ Local activity: {local_activity}.
 Agent activity: {context-aware interaction}.
 Social scene: {solo | small local interaction | broader crowd or group context}.
 Human interaction: {human_interaction}.
-Upper-left travel label: draw exactly one small hand-lettered postcard label in the upper-left safe area. Exact text: "{label_text}". Use the sample style: title-case place name and full written date, no all-caps text, no slash separator, no day number. Keep the same label position, margin, scale, ink color, and lettering style across every day. Make it feel painted or printed into the artwork.
+Upper-left travel label: draw exactly one small hand-lettered postcard label in the upper-left safe area. Exact text: "{label_text}". Use the label reference style: title-case place name and full written date, no all-caps text, no slash separator, no day number. Keep the same label position, margin, scale, ink color, and lettering style across every day. Make it feel painted or printed into the artwork.
 Composition: wide landscape wallpaper, destination and environment are the main subject, clear negative space for desktop icons.
 Avoid: centered agent, close-up agent, mascot poster, repeated lower-corner standing pose, extra animals, readable text outside the exact upper-left travel label, logos, watermarks, wrong landmarks, generic tourist collage.
 ```

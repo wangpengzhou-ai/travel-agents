@@ -16,13 +16,6 @@
 | <img width="1672" height="941" alt="ig_037415fcb4035463016a2e1c58843c8191a74536a5c7f4dd04" src="https://github.com/user-attachments/assets/aa883138-b4ff-49f4-804c-e2e65103de6f" /> | <img width="1672" height="941" alt="ig_037415fcb4035463016a2e3da4743081918779d7d0c1c0fde3" src="https://github.com/user-attachments/assets/f0177c1b-0645-4834-aaeb-71233dac308e" /> | <img width="1672" height="941" alt="ig_037415fcb4035463016a2e45e0dac88191b265a4a19105772c" src="https://github.com/user-attachments/assets/3d270f84-721d-4686-81e3-d7bf7e1aa2ea" /> |
 
 
-
-
-
-
-
-
-
 ---
 
 ## 📂 目录结构
@@ -33,7 +26,7 @@ agent-travel4me/
 ├── agents/openai.yaml                # 启动配置
 ├── scripts/                          # 驱动旅行的核心本地脚本（初始化、每日推进等）
 ├── references/                       # 路线与风格指南
-├── assets/style_samples/             # 明信片风格样张
+├── assets/style_samples/             # 明信片风格样张和日期标签参考
 └── output/                           # 你的明信片和旅行足迹收藏夹
 
 ```

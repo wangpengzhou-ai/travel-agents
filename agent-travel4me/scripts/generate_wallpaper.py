@@ -4,7 +4,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from common import load_trip, read_json, style_sample_path, utc_now, write_json, write_text
+from common import label_sample_path, load_trip, read_json, utc_now, write_json, write_text
 from image_providers import ImageProviderError, generate_image
 from prompt_wallpaper import build_prompt_context, build_wallpaper_prompt
 from resize_wallpaper import resize_wallpaper
@@ -17,7 +17,7 @@ def generate_for_day(trip_dir: Path, day: int, size: str = "2560x1440", dry_run:
     day_dir = trip_dir / f"day_{day:03d}"
     day_dir.mkdir(parents=True, exist_ok=True)
     prompt_context = build_prompt_context(trip, waypoint)
-    style_sample = style_sample_path()
+    label_sample = label_sample_path()
 
     metadata = {
         "day": day,
@@ -25,7 +25,7 @@ def generate_for_day(trip_dir: Path, day: int, size: str = "2560x1440", dry_run:
         "label_text": prompt_context["label_text"],
         "label_date": prompt_context["label_date"],
         "weather": waypoint.get("weather"),
-        "style_sample_path": str(style_sample),
+        "label_sample_path": str(label_sample),
         "created_at": utc_now(),
         "prompt_path": str(day_dir / "prompt.txt"),
         "size": size,
@@ -55,7 +55,7 @@ def generate_for_day(trip_dir: Path, day: int, size: str = "2560x1440", dry_run:
     original = day_dir / "original.png"
     wallpaper = day_dir / "wallpaper.png"
     character_reference = trip_dir / "character_reference.png"
-    reference_images = [style_sample]
+    reference_images = [label_sample]
     if character_reference.exists():
         reference_images.append(character_reference)
     metadata["reference_image_paths"] = [str(path) for path in reference_images]

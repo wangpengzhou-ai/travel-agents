@@ -90,7 +90,7 @@ Avoid abstract role-only candidates such as "quiet mapkeeper", "little observer"
 - Visual style: use the fixed watercolor postcard style.
 - Day count: estimate automatically from distance, cap at 30 days, and let the user shorten it.
 - Place/date label: default to a model-drawn upper-left label unless the user opts out.
-- Label format: match `assets/style_samples/watercolor-postcard-rome.png`, for example `Rome    May 28, 2026`; do not use all caps, slash separators, uppercase month abbreviations, or `DAY XX`.
+- Label format: match `assets/style_samples/upper-left-label-date-reference.png`, for example `Rome    May 28, 2026`; do not use all caps, slash separators, uppercase month abbreviations, or `DAY XX`.
 
 ## Expected Outputs
 
@@ -150,8 +150,9 @@ If no image path is available, still create route data and prompts, then state w
 Use `watercolor_postcard` for every journey. Read `references/style_presets.md` only for the postcard style contract. The bundled sample is:
 
 - `watercolor_postcard`: `assets/style_samples/watercolor-postcard-rome.png`
+- Upper-left label reference: `assets/style_samples/upper-left-label-date-reference.png`
 
-Do not use the repository-root `style-samples/` folder for runtime style guidance; it contains legacy exploration samples.
+Do not use the repository-root `style-samples/` folder for runtime style guidance; it contains legacy exploration samples. For runtime image references, prefer the label-only reference above instead of passing the full postcard sample, so the reference controls only the upper-left date label and does not steer the whole scene style.
 
 ### 1. Detect
 
