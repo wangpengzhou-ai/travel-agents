@@ -7,7 +7,7 @@ Prompt generation serves three goals:
 3. Keep the Agent small, varied, and naturally participating in the environment.
 4. Keep the upper-left place/date label consistent across days.
 
-## Wallpaper Prompt Fields
+## Postcard Prompt Fields
 
 Include these fields in order:
 
@@ -24,7 +24,7 @@ Include these fields in order:
 11. `human_interaction`
 12. `agent_composition_rule`
 13. `upper_left_travel_label`
-14. `wallpaper_layout`
+14. `postcard_layout`
 15. `negative_constraints`
 
 ## Upper-left Travel Label
@@ -51,7 +51,7 @@ For live daily generation, use the day's local weather when it is already availa
 Weather is optional prompt context:
 
 - Route planning may omit weather.
-- Final postcards, wallpapers, host-native image generation, and importable daily scene images may omit weather.
+- Final postcards, host-native image generation, and importable daily scene images may omit weather.
 - Do not silently substitute generic seasonal climate for current/local weather. If weather is unavailable, simply omit the weather line.
 - When live/user-provided weather is unavailable, route planning may set `visual_weather` as a narrative atmosphere cue, such as mist, wind, drizzle, blue hour, or post-rain reflections. Label it as scene mood, not live weather data.
 
@@ -126,7 +126,7 @@ Avoid: centered agent, close-up agent, mascot poster, repeated lower-corner stan
 ## Skeleton
 
 ```text
-Create a 16:9 travel wallpaper in {style_name}.
+Create a 16:9 travel postcard in {style_name}.
 Scene: Day {day}/{total}, {location}, {country_or_region}.
 Main visual subject: {landscape_type} with {landmarks}.
 Local visual elements: {local_visual_elements}.
@@ -139,6 +139,6 @@ Agent activity: {context-aware interaction}.
 Social scene: {solo | small local interaction | broader crowd or group context}.
 Human interaction: {human_interaction}.
 Upper-left travel label: draw exactly one small hand-lettered postcard label in the upper-left safe area. Exact text: "{label_text}". Use the label reference style: title-case place name and full written date, no all-caps text, no slash separator, no day number. Keep the same label position, margin, scale, ink color, and lettering style across every day. Make it feel painted or printed into the artwork.
-Composition: wide landscape wallpaper, destination and environment are the main subject, clear negative space for desktop icons.
+Composition: wide landscape postcard, destination and environment are the main subject, with the tiny Agent integrated naturally into the scene.
 Avoid: centered agent, close-up agent, mascot poster, repeated lower-corner standing pose, extra animals, readable text outside the exact upper-left travel label, logos, watermarks, wrong landmarks, generic tourist collage.
 ```

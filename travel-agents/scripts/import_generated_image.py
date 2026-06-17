@@ -6,13 +6,7 @@ import shutil
 from pathlib import Path
 
 from common import load_trip, read_json, save_trip, utc_now, write_json, write_text
-from prompt_wallpaper import build_prompt_context, build_wallpaper_prompt
-from resize_wallpaper import resize_wallpaper
-
-
-def _parse_size(size: str) -> tuple[int, int]:
-    width, height = size.lower().split("x", 1)
-    return int(width), int(height)
+from prompt_postcard import build_prompt_context, build_postcard_prompt
 
 
 def _copy_image(source: Path, target: Path, overwrite: bool) -> None:
@@ -45,12 +39,10 @@ def import_image(
 
     prompt_path = day_dir / "prompt.txt"
     if not prompt_path.exists():
-        write_text(prompt_path, build_wallpaper_prompt(trip, waypoint) + "\n")
+        write_text(prompt_path, build_postcard_prompt(trip, waypoint) + "\n")
 
     original = day_dir / "original.png"
-    wallpaper = day_dir / "wallpaper.png"
     _copy_image(source_image.expanduser(), original, overwrite)
-    resize_wallpaper(original, wallpaper, *_parse_size(size))
 
     prompt_context = build_prompt_context(trip, waypoint)
     metadata_path = day_dir / "metadata.json"
@@ -67,7 +59,6 @@ def import_image(
             "imported_at": utc_now(),
             "prompt_path": str(prompt_path),
             "original_path": str(original),
-            "wallpaper_path": str(wallpaper),
             "size": size,
             "dry_run": False,
             "status": "imported_generated_image",

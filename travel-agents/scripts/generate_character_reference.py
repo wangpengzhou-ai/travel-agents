@@ -5,7 +5,7 @@ import argparse
 from pathlib import Path
 
 from common import load_trip, write_json, write_text
-from image_providers import ImageProviderError, generate_image
+from image_providers import ImageProviderError, generate_image, selected_provider
 
 
 def build_character_prompt(character: dict | str, style: str) -> str:
@@ -29,7 +29,7 @@ def build_character_prompt(character: dict | str, style: str) -> str:
         [
             "The character should be a small travel companion with clear recurring visual anchors.",
             "Show full body, three-quarter view, simple neutral travel backdrop, no text, no logos, no watermark.",
-            "Keep the design suitable for reuse as a tiny recurring traveler in scenic wallpaper images.",
+            "Keep the design suitable for reuse as a tiny recurring traveler in scenic postcard images.",
             f"Rendering style hint: {style}.",
         ]
     )
@@ -49,6 +49,14 @@ def main() -> None:
     write_text(trip_dir / "character_reference_prompt.txt", prompt + "\n")
     metadata = {"prompt_path": str(trip_dir / "character_reference_prompt.txt"), "dry_run": args.dry_run}
     if not args.dry_run:
+        if not selected_provider():
+            metadata["status"] = "blocked_image_provider_unavailable"
+            metadata["issues"] = [
+                "No local image provider is configured. Use a host-native image tool with this prompt, or set OPENAI_API_KEY, GEMINI_API_KEY, SEEDREAM_API_KEY, or TRAVEL_AGENTS_IMAGE_COMMAND."
+            ]
+            write_json(trip_dir / "character_reference_metadata.json", metadata)
+            print(metadata["prompt_path"])
+            return
         try:
             provider_meta = generate_image(prompt, trip_dir / "character_reference.png", size=args.size)
             metadata.update(provider_meta)

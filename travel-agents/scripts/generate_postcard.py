@@ -5,9 +5,8 @@ import argparse
 from pathlib import Path
 
 from common import label_sample_path, load_trip, read_json, utc_now, write_json, write_text
-from image_providers import ImageProviderError, generate_image
-from prompt_wallpaper import build_prompt_context, build_wallpaper_prompt
-from resize_wallpaper import resize_wallpaper
+from image_providers import ImageProviderError, generate_image, selected_provider
+from prompt_postcard import build_prompt_context, build_postcard_prompt
 from validate_route import validate_daily_context, validate_route
 
 
@@ -44,6 +43,13 @@ def generate_for_day(trip_dir: Path, day: int, size: str = "2560x1440", dry_run:
         return metadata
 
     if not dry_run:
+        if not selected_provider():
+            metadata["status"] = "blocked_image_provider_unavailable"
+            metadata["issues"] = [
+                "No local image provider is configured. Use a host-native image tool with dry-run import, or set OPENAI_API_KEY, GEMINI_API_KEY, SEEDREAM_API_KEY, or TRAVEL_AGENTS_IMAGE_COMMAND."
+            ]
+            write_json(day_dir / "metadata.json", metadata)
+            return metadata
         validation_issues = validate_route(trip)
         if validation_issues:
             metadata["status"] = "blocked_route_or_daily_context_invalid"
@@ -51,20 +57,17 @@ def generate_for_day(trip_dir: Path, day: int, size: str = "2560x1440", dry_run:
             write_json(day_dir / "metadata.json", metadata)
             return metadata
 
-    prompt = build_wallpaper_prompt(trip, waypoint)
+    prompt = build_postcard_prompt(trip, waypoint)
     write_text(day_dir / "prompt.txt", prompt + "\n")
     if dry_run:
         write_json(day_dir / "metadata.json", metadata)
         return metadata
 
     original = day_dir / "original.png"
-    wallpaper = day_dir / "wallpaper.png"
     try:
         provider_meta = generate_image(prompt, original, size=size, reference_images=reference_images)
-        resize_wallpaper(original, wallpaper, *[int(x) for x in size.split("x", 1)])
         metadata.update(provider_meta)
         metadata["original_path"] = str(original)
-        metadata["wallpaper_path"] = str(wallpaper)
     except ImageProviderError as exc:
         metadata["error"] = str(exc)
         metadata["status"] = "prompt_only_provider_missing_or_failed"
@@ -88,7 +91,7 @@ def main() -> None:
         json.dump(result, sys.stdout, ensure_ascii=False, indent=2)
         sys.stdout.write("\n")
     else:
-        print(result.get("wallpaper_path") or result.get("prompt_path"))
+        print(result.get("original_path") or result.get("prompt_path"))
 
 
 if __name__ == "__main__":

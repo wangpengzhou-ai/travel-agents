@@ -102,7 +102,7 @@ def _character_identity_text(character: dict[str, Any]) -> str:
     return ". ".join(parts)
 
 
-def build_wallpaper_prompt(trip: dict[str, Any], waypoint: dict[str, Any]) -> str:
+def build_postcard_prompt(trip: dict[str, Any], waypoint: dict[str, Any]) -> str:
     style_id = trip.get("style", "watercolor_postcard")
     style_bible = STYLE_BIBLES.get(style_id, STYLE_BIBLES["watercolor_postcard"])
     character = trip.get("character", {})
@@ -150,7 +150,7 @@ def build_wallpaper_prompt(trip: dict[str, Any], waypoint: dict[str, Any]) -> st
 
     return "\n".join(
         [
-            f"Create a 16:9 travel wallpaper in {style_bible}.",
+            f"Create a 16:9 travel postcard in {style_bible}.",
             f"Scene: Day {waypoint['day']}/{total}, {waypoint['location']}, {waypoint.get('country_or_region', '')}.",
             f"Main visual subject: {waypoint.get('landscape_type', 'travel landscape')} with {landmarks}.",
             f"Local visual elements: {local_visuals}.",
@@ -164,7 +164,7 @@ def build_wallpaper_prompt(trip: dict[str, Any], waypoint: dict[str, Any]) -> st
             *human_interaction_lines,
             f"Agent placement: {waypoint.get('agent_position', 'small off-center traveler integrated with the scene')}.",
             f"Upper-left travel label: draw exactly one small hand-lettered postcard label in the upper-left safe area. Exact text: \"{context['label_text']}\". Match the bundled label reference at assets/style_samples/upper-left-label-date-reference.png: title-case place name, full written date, no slash, no all-caps text, no day number. Keep the same label position, margin, scale, ink color, and lettering style across every day. Make it feel painted or printed into the artwork, not like a digital overlay.",
-            "Composition: wide landscape wallpaper, destination and environment are the main subject, clear negative space for desktop icons.",
+            "Composition: wide landscape postcard, destination and environment are the main subject, with the tiny Agent integrated naturally into the scene.",
             f"Prompt focus: {waypoint.get('prompt_focus', waypoint.get('location', 'travel scene'))}.",
             f"Avoid: {NEGATIVE}.",
         ]
@@ -183,7 +183,7 @@ def main() -> None:
     trip = load_trip(trip_dir)
     day = args.day or trip.get("current_day", 1)
     waypoint = trip["waypoints"][day - 1]
-    prompt = build_wallpaper_prompt(trip, waypoint)
+    prompt = build_postcard_prompt(trip, waypoint)
 
     if args.out:
         write_text(Path(args.out), prompt + "\n")

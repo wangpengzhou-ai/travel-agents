@@ -1,6 +1,6 @@
 # Route Planning
 
-Routes are narrative wallpaper routes for visual storytelling.
+Routes are narrative postcard routes for visual storytelling.
 
 ## Day Cap
 
@@ -86,7 +86,7 @@ score = recognizability * 0.30
       + visual_diversity * 0.25
       + route_progress * 0.20
       + local_specificity * 0.15
-      + wallpaper_quality * 0.10
+      + postcard_quality * 0.10
 ```
 
 Rules:

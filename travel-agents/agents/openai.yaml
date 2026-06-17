@@ -1,4 +1,4 @@
 interface:
   display_name: "travel agents"
   short_description: "Start and run a travel agents journey"
-  default_prompt: "Use $travel-agents to start a new travel agents journey, ask the first setup questions, and recommend three concrete Agent identity candidates."
+  default_prompt: "Use $travel-agents to start a new travel agents journey. First apply the Image Capability Gate; only ask setup questions and recommend Agent identity candidates after image generation is available."

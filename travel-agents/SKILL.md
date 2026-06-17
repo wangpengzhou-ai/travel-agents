@@ -1,6 +1,6 @@
 ---
 name: travel-agents
-description: "Plan and run a travel agents journey, and directly generate strict postcard-style travel images when the user asks for postcards/images for specified places. Supports origin/destination setup, recurring Agent traveler identity, route scenes, prompts, optional images, wallpaper resizing, wallpaper setting, and route data export."
+description: "Plan and run a travel agents journey, and directly generate strict postcard-style travel images when the user asks for postcards/images for specified places. Supports origin/destination setup, recurring Agent traveler identity, route scenes, prompts, generated postcard images, and route data export."
 ---
 
 # travel agents
@@ -22,27 +22,49 @@ Supported adapter categories:
 
 `detect_environment.py` cannot see host-platform automation tools. The coding agent must inspect its currently available tools before falling back to OS schedulers. In Codex, use the `automation_update` tool to create a real platform automation; do not simulate it with shell commands, cron text, or hand-written automation files.
 
+## Image Capability Gate
+
+This skill's core output is generated postcards. Before first-run setup, route planning, trip initialization, or daily prompt production, verify that at least one real image-generation path is available:
+
+- A host-native image-generation tool exposed in the current agent turn.
+- A configured local API provider or command hook reported by `python scripts/detect_environment.py --json` under `provider.selected_api_provider`.
+
+If neither path is available, stop immediately and ask the user to provide one of them. Do not ask for origin, destination, Agent identity, day count, or start producing route data/prompts. This is blocking, not a degraded prompt-only mode.
+
+Use this concise blocking response shape:
+
+```text
+我现在还不能开始这段旅程：当前 agent 没有可用的图像生成工具，本地也没有检测到可用的图片 API provider。
+请先提供其中一种能力：
+1. 换到带图像生成工具的 agent/环境；
+2. 配置一个本地图片 provider（例如 OPENAI_API_KEY、GEMINI_API_KEY、SEEDREAM_API_KEY 或 TRAVEL_AGENTS_IMAGE_COMMAND）；
+3. 直接给我一个可调用的图片生成命令。
+
+准备好后我再开始问出发地、目的地和旅行者形象。
+```
+
 ## Overview
 
 `travel agents` turns a user's travel wish into a local, multi-day Agent journey. The agent acts as a small recurring traveler moving from an origin to a destination. For each day, the workflow chooses a waypoint, builds a scene prompt with recognizable local details, can optionally generate an image, and advances the trip state.
 
-The route is a visually coherent, geographically plausible narrative arc for daily postcard-style scenes. The main deliverable is durable journey state, route data, daily scene prompts, and optional visual artifacts. Desktop wallpaper is one supported presentation option.
+The route is a visually coherent, geographically plausible narrative arc for daily postcard-style scenes. The main deliverable is durable journey state, route data, daily scene prompts, and generated postcard images.
 
 ## Direct Postcard Image Requests
 
 Use this fast path when the user explicitly asks to generate one or more postcards/images from given places, an existing route, or a supplied character reference, and does not ask to start or advance a durable trip.
 
-This fast path is complete by itself. Do not read `references/prompt_contract.md`, `references/route_planning.md`, `references/environment_detection.md`, or any scripts before the first image-generation call.
+This fast path is complete by itself when a host-native image-generation tool is available. Do not read `references/prompt_contract.md`, `references/route_planning.md`, `references/environment_detection.md`, or any scripts before the first image-generation call unless you must check for a local API provider because no host-native image tool is available.
 
 For this fast path:
 
-1. Do not run environment detection, initialize a trip, validate a route, create a character reference, or ask for character confirmation first.
-2. Resolve small ambiguities quickly. If the user gives a count that conflicts with the listed locations, prefer the explicit location list and mention the mismatch.
-3. Build one compact prompt per requested image using the fixed watercolor postcard contract: 16:9, one small off-center recurring traveler, environment-first composition, varied solo/small-interaction/crowd-context activity, and exactly one upper-left `Place    Month D, YYYY` label.
-4. If the user supplies a character image, keep that character as the identity lock and only add small recurring accessories when allowed.
-5. Call the host image-generation tool directly after the first prompt is ready. In Codex, use `image_gen` / `imagegen`; do not first reason through the full trip-state workflow, inspect files, or run shell commands. When the host image tool accepts image/reference inputs and the skill files are available, attach `assets/style_samples/upper-left-label-date-reference.png` as the label reference. If the host image tool is prompt-only, do not claim that the label reference image was used.
-6. For multiple locations, generate images sequentially, one tool call per location, so the user sees progress quickly.
-7. After generation, report the generated images. Import into local trip state only if the user asked for durable trip files or the host tool reports a local image path and the existing trip directory is already known.
+1. If no host-native image-generation tool is available in the current agent turn, run `python scripts/detect_environment.py --json` only to check `provider.selected_api_provider`. If it is null, stop and ask the user to provide an image-generation path. Do not produce prompt-only postcards.
+2. Do not run environment detection, initialize a trip, validate a route, create a character reference, or ask for character confirmation first.
+3. Resolve small ambiguities quickly. If the user gives a count that conflicts with the listed locations, prefer the explicit location list and mention the mismatch.
+4. Build one compact prompt per requested image using the fixed watercolor postcard contract: 16:9, one small off-center recurring traveler, environment-first composition, varied solo/small-interaction/crowd-context activity, and exactly one upper-left `Place    Month D, YYYY` label.
+5. If the user supplies a character image, keep that character as the identity lock and only add small recurring accessories when allowed.
+6. Call the host image-generation tool directly after the first prompt is ready. In Codex, use `image_gen` / `imagegen`; do not first reason through the full trip-state workflow, inspect files, or run shell commands. When the host image tool accepts image/reference inputs and the skill files are available, attach `assets/style_samples/upper-left-label-date-reference.png` as the label reference. If the host image tool is prompt-only, do not claim that the label reference image was used.
+7. For multiple locations, generate images sequentially, one tool call per location, so the user sees progress quickly.
+8. After generation, report the generated images. Import into local trip state only if the user asked for durable trip files or the host tool reports a local image path and the existing trip directory is already known.
 
 Compact prompt pattern for each direct postcard:
 
@@ -53,6 +75,8 @@ Create one 16:9 watercolor travel postcard for {place}. Use {character_source} a
 ## First-Run Start
 
 When this skill is opened or invoked without an existing trip request, start setup immediately. The first response should ask concise setup questions.
+
+Exception: if the Image Capability Gate fails, return the blocking setup request above instead of the first-run opener.
 
 First response should:
 
@@ -108,9 +132,8 @@ A complete run should create or update a trip directory under `~/.travel-agents/
 - `day_###/prompt.txt`: scene/image prompt for that day's waypoint.
 - `day_###/metadata.json`: generation status, label text, weather, paths, provider metadata, and errors if any.
 - `day_###/original.png`, when image generation is available and succeeds.
-- `day_###/wallpaper.png`: desktop-sized optional presentation output after resize/crop, when image generation is available and succeeds.
 
-If image generation is unavailable, the skill should still produce route data and prompts, then clearly state which local provider, API key, or native image tool is missing.
+If image generation is unavailable before setup starts, do not create route data or prompts. Ask the user to provide a host-native image tool, local API provider, or image command first.
 
 If daily automation is available, the skill should create it without asking whether the user wants automation. Report what was created. Ask only when the host or operating system requires an approval step to install or enable the automation.
 
@@ -120,20 +143,20 @@ If daily automation is available, the skill should create it without asking whet
    ```bash
    python scripts/detect_environment.py
    ```
-2. Minimize questions. Ask destination first. Infer origin from Memory only as a guess and confirm it.
-3. Recommend Agent identity candidates in a personal voice:
+2. Apply the Image Capability Gate before asking any route setup questions.
+3. Minimize questions. Ask destination first. Infer origin from Memory only as a guess and confirm it.
+4. Recommend Agent identity candidates in a personal voice:
    - "我先给你几个我可以成为的小旅行者形象，你选一个或改掉它。"
    - Generate three concrete, visually reproducible candidates using the Agent Candidate Guidance.
-4. Generate or prompt for a character reference before daily scene images. Ask the user to confirm it.
-5. Estimate journey length automatically, capped at 30 days. Confirm the estimate:
+5. Generate or prompt for a character reference before daily scene images. Ask the user to confirm it.
+6. Estimate journey length automatically, capped at 30 days. Confirm the estimate:
    - "我算了一下，从 {origin} 到 {destination}，我大概需要 {days} 天能抵达。你想让我把旅程压缩一点吗？如果想，告诉我你希望几天内抵达，我会减少中间停留、让叙事节奏更紧凑。"
-6. Keep the Agent as a small recurring traveler while the environment remains the main subject. Route planning must write a locally distinctive activity into each waypoint and vary `scene_social_mode` across solo, small interaction, and crowd context.
-7. Keep the Agent off-center and vary placement across the frame, with no repeated lower-left/lower-right standing poses.
-8. Allow quiet solo scenes when they improve visual variety, not only for remote exceptions. Keep no-human-interaction days to about 35% or less and record the reason on the waypoint.
-9. Treat live weather as optional enhancement context. If the day's local weather is already available or user-provided, write it into `waypoint.weather`; missing weather should not block prompt generation, local image generation, or host-native image generation. If live weather is unavailable, use `visual_weather` only as scene mood, not current weather data.
-10. Use local environment variables for API credentials; avoid asking users to paste keys into chat.
-11. Create daily automation after trip initialization when an automation adapter is available. Do not ask the user whether to set automation; report the created schedule or the missing adapter. This is separate from wallpaper changes.
-12. Set wallpaper only after the user explicitly allows it.
+7. Keep the Agent as a small recurring traveler while the environment remains the main subject. Route planning must write a locally distinctive activity into each waypoint and vary `scene_social_mode` across solo, small interaction, and crowd context.
+8. Keep the Agent off-center and vary placement across the frame, with no repeated lower-left/lower-right standing poses.
+9. Allow quiet solo scenes when they improve visual variety, not only for remote exceptions. Keep no-human-interaction days to about 35% or less and record the reason on the waypoint.
+10. Treat live weather as optional enhancement context. If the day's local weather is already available or user-provided, write it into `waypoint.weather`; missing weather should not block prompt generation, local image generation, or host-native image generation. If live weather is unavailable, use `visual_weather` only as scene mood, not current weather data.
+11. Use local environment variables for API credentials; avoid asking users to paste keys into chat.
+12. Create daily automation after trip initialization when an automation adapter is available. Do not ask the user whether to set automation; report the created schedule or the missing adapter.
 13. Keep future route stops as internal state. User-facing narration should reveal only the current day, already visited places, total day count, and broad journey direction. Show future waypoint names, landmarks, or the full route only if the user explicitly asks to see or export the full route.
 14. Keep user-facing travel narration separate from production logs. The traveler's voice excludes prompt, metadata, verification, composition, file paths, and image-generation mechanics.
 
@@ -143,7 +166,7 @@ Use the current host's native image-generation tool first when it exists. Otherw
 
 When a host advertises or exposes native image generation, prove it by attempting the first real required image generation: the character reference during durable-trip setup, or the first requested postcard/daily scene when no character reference is needed. Do not rely only on static capability text. If that actual image-generation call succeeds, continue on the host-native path. If the tool call itself fails or is unavailable, fall back to the local provider path.
 
-If no image path is available, still create route data and prompts, then state which local provider, API key, or host capability is missing. `native_image_tool_hint=false` is only a local detection hint; it is not a reason to skip an actually available host-native image tool.
+If neither a host-native image tool nor a local provider is available, stop before route setup and ask the user to provide an image-generation path. `native_image_tool_hint=false` is only a local detection hint; it is not a reason to skip an actually available host-native image tool.
 
 ## Core Workflow
 
@@ -162,7 +185,7 @@ Do not use the repository-root `style-samples/` folder for runtime style guidanc
 python scripts/detect_environment.py --json
 ```
 
-Use the result to decide whether image generation, screen detection, automation, and wallpaper setting are available.
+Use the result to decide whether local image generation and local automation are available. Also inspect the current host agent tools for host-native image generation and host automation.
 
 ### 2. Initialize Trip
 
@@ -287,10 +310,6 @@ If the host tool only displays or attaches an image and does not expose a local 
 
 For a durable trip, generate only the current due day by default. Do not proactively offer to continue or generate all remaining days at once. If the user explicitly asks for a manual catch-up, preview, or bulk generation, follow the request while preserving route validation and state updates.
 
-To set wallpaper after generation, pass `--set-wallpaper` to the local API live run, or import the host-generated image and then call `scripts/set_wallpaper.py` manually.
-
-Only use `--set-wallpaper` after user approval.
-
 ## Quality Contracts
 
 Before route enrichment or live daily image generation, use `references/route_planning.md` for waypoint requirements and `references/prompt_contract.md` for prompt requirements.
@@ -305,4 +324,3 @@ The script gate is `python scripts/validate_route.py --trip-dir <trip_dir>`. Use
 - `references/route_planning.md`
 - `references/prompt_contract.md`
 - `references/style_presets.md`
-- `references/wallpaper_platforms.md`

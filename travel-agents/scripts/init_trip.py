@@ -76,7 +76,6 @@ def main() -> None:
             "format": "{Title Case label_location}    {Month D, YYYY}",
         },
         "current_day": 1,
-        "auto_set_wallpaper": False,
         "waypoints": route["waypoints"],
     }
 

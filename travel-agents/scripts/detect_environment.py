@@ -8,7 +8,6 @@ import shutil
 from typing import Any
 
 from common import print_json
-from detect_screen import detect_screen
 
 
 def _truthy_env(*names: str) -> bool:
@@ -38,7 +37,7 @@ def provider_status() -> dict[str, Any]:
         "host_native_strategy": {
             "python_can_verify": False,
             "probe": "attempt_first_required_image_with_host_tool",
-            "fallback": "local_api_provider_or_prompt_only",
+            "fallback": "local_api_provider_or_block_setup",
         },
         "available_api_providers": providers,
         "selected_api_provider": providers[0] if providers else None,
@@ -57,18 +56,6 @@ def desktop_session() -> dict[str, Any]:
         hints["wayland_display"] = os.environ.get("WAYLAND_DISPLAY")
         hints["xdg_current_desktop"] = os.environ.get("XDG_CURRENT_DESKTOP")
     return {"platform": system, "hints": hints, "likely_interactive": any(bool(v) for v in hints.values())}
-
-
-def wallpaper_status() -> dict[str, Any]:
-    system = platform.system()
-    if system == "Darwin":
-        return {"platform": "macos", "adapter": "osascript", "available": shutil.which("osascript") is not None}
-    if system == "Windows":
-        return {"platform": "windows", "adapter": "ctypes:SystemParametersInfoW", "available": True}
-    if system == "Linux":
-        desktop = os.environ.get("XDG_CURRENT_DESKTOP", "")
-        return {"platform": "linux", "adapter": "gsettings" if "GNOME" in desktop.upper() else "unknown", "available": shutil.which("gsettings") is not None}
-    return {"platform": system, "adapter": None, "available": False}
 
 
 def automation_status(provider: dict[str, Any]) -> dict[str, Any]:
@@ -121,8 +108,6 @@ def detect_environment() -> dict[str, Any]:
         "shell": bool(shutil.which("sh") or shutil.which("bash") or shutil.which("zsh") or shutil.which("powershell")),
         "provider": provider,
         "desktop_session": desktop_session(),
-        "screen": detect_screen(),
-        "wallpaper": wallpaper_status(),
         "automation": automation_status(provider),
     }
 

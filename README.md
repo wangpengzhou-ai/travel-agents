@@ -8,8 +8,8 @@
 
 * **🌅 每天一封·手绘风明信片**：每天你都会收到一封独特的明信片。画面一角是你的 Agent 融入当地风景的小小身影，左上角印着工整的地点与日期标签，是你与它专属的旅行纪念。
 * **🎒 基于真实地理的人文奇遇**：你的 Agent 走的是一条真实存在的路线。它在路上可不是走马观花，而是会去尝尝当地小吃、逛逛集市，甚至还会和路过的当地居民来一次有趣的日常互动。
-* **⚙️ 全自动的无感陪伴**：从查看地图、规划路线到每天独自前行，这一切都由你的 Agent 自己搞定。在得到你的允许后，它还会在每天清晨悄悄把你的电脑壁纸，换成它昨晚刚刚寄回的最新风景。
-* **🔌 加载即用，无需配置**：它能自动适应你当前的环境，不管是直接在聊天框里把明信片递给你，还是默默存在本地，都不需要你做任何复杂的调整。
+* **⚙️ 全自动的无感陪伴**：从查看地图、规划路线到每天独自前行，这一切都由你的 Agent 自己搞定；有自动化能力时，它可以按天提醒或推进下一封明信片。
+* **🔌 能力就绪后即用**：它会先检查当前环境是否具备图像生成工具或已配置的图片 API provider。没有可用图像能力时，它会先请你补充能力，不会提前开始规划路线。
 
 | <img width="1672" height="941" alt="ig_037415fcb4035463016a2e3c58d560819190720e2e2032baa3" src="https://github.com/user-attachments/assets/fa72e334-2279-445a-9db3-143db79e129d" /> | <img width="1672" height="941" alt="ig_037415fcb4035463016a2e1d7f61cc8191b38266cf463a2bcc" src="https://github.com/user-attachments/assets/872c0cc4-35f0-464a-8fae-de8731871f9c" /> | <img width="1672" height="941" alt="ig_037415fcb4035463016a2e1f163db0819191bb256532fbfa9e" src="https://github.com/user-attachments/assets/4c73fdd3-c3d6-495d-90d0-25c290a9a13b" /> |
 |---|---|---|
@@ -37,7 +37,7 @@ travel-agents/
 
 ## 🚀 快速开始
 
-当你加载此功能时，你的 Agent 会自动主动找你聊天，确认你想让它从哪出发、去往哪里。确认完毕后，你就可以关掉窗口，静静等待它的第一封明信片了。
+当你加载此功能时，你的 Agent 会先检查当前环境是否具备图像生成能力。能力就绪后，它会主动确认你想让它从哪出发、去往哪里；如果缺少图像工具或图片 API provider，它会先请你补充能力，不会提前规划路线。
 
 如果需要手动让它出发或查看状态，只需两步：
 
@@ -76,8 +76,8 @@ Simply provide a destination, and your Agent will spontaneously set off on a mul
 
 * **A Daily Postcard Keepsake:** Enjoy beautifully framed, environment-first watercolor postcards delivered straight to you by your Agent.
 * **Real-world Routes & Organic Encounters:** The itinerary seamlessly integrates authentic regional coordinates, local landmarks, and natural human interactions.
-* **Zero-Friction Automation:** Your Agent fully handles route planning and daily progression automatically. With your permission, it can refresh your desktop wallpaper every morning with its latest postcard.
-* **Instant Compatibility:** Works out of the box, rendering and delivering postcards directly within your current environment without tedious manual setups.
+* **Zero-Friction Automation:** Your Agent handles route planning and daily progression automatically when image generation and automation adapters are available.
+* **Capability-Gated Start:** The skill first checks for a host image tool or configured image API provider. If neither exists, it asks for setup before planning a route.
 
 ---
 

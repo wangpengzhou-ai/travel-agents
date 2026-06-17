@@ -5,8 +5,7 @@ import argparse
 from pathlib import Path
 
 from common import load_trip, save_trip
-from generate_wallpaper import generate_for_day
-from set_wallpaper import set_wallpaper
+from generate_postcard import generate_for_day
 
 
 def apply_daily_context(trip: dict, day: int, weather: str | None, label_date: str | None, label_location: str | None) -> bool:
@@ -30,7 +29,6 @@ def main() -> None:
     parser.add_argument("--day", type=int)
     parser.add_argument("--size", default="2560x1440")
     parser.add_argument("--dry-run", action="store_true")
-    parser.add_argument("--set-wallpaper", action="store_true")
     parser.add_argument("--weather", help="Daily weather summary to weave into the image prompt.")
     parser.add_argument("--label-date", help="Exact date text or ISO date for the model-drawn upper-left label.")
     parser.add_argument("--label-location", help="Exact location text for the model-drawn upper-left label.")
@@ -52,15 +50,6 @@ def main() -> None:
         if blocked:
             exit_code = 2
         else:
-            wallpaper_path = result.get("wallpaper_path")
-            if args.set_wallpaper and wallpaper_path and not args.dry_run:
-                try:
-                    set_wallpaper(Path(wallpaper_path))
-                    result["wallpaper_set"] = True
-                except Exception as exc:
-                    result["wallpaper_set"] = False
-                    result["wallpaper_error"] = str(exc)
-
             if not args.dry_run and "error" not in result:
                 trip["current_day"] = min(day + 1, trip["days"] + 1)
                 save_trip(trip_dir, trip)
