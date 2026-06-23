@@ -14,7 +14,7 @@ STYLE_BIBLES = {
 }
 
 
-NEGATIVE = "centered agent, close-up agent, mascot poster, repeated lower-corner standing pose, extra animals, readable text outside the exact upper-left travel label, logos, watermarks, wrong landmarks, generic tourist collage"
+NEGATIVE = "centered agent, close-up agent, mascot poster, repeated lower-corner standing pose, extra animals, large title text, oversized label text, boxed label, label background panel, banner, placard, ribbon, sticker, caption box, underline or divider around the label, readable text outside the exact upper-left travel label, logos, watermarks, wrong landmarks, generic tourist collage"
 
 MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
 NO_HUMAN_INTERACTION_VALUES = {"none", "no human interaction", "n/a", "na"}
@@ -163,7 +163,7 @@ def build_postcard_prompt(trip: dict[str, Any], waypoint: dict[str, Any]) -> str
             *social_scene_lines,
             *human_interaction_lines,
             f"Agent placement: {waypoint.get('agent_position', 'small off-center traveler integrated with the scene')}.",
-            f"Upper-left travel label: draw exactly one small hand-lettered postcard label in the upper-left safe area. Exact text: \"{context['label_text']}\". Match the bundled label reference at assets/style_samples/upper-left-label-date-reference.png: title-case place name, full written date, no slash, no all-caps text, no day number. Keep the same label position, margin, scale, ink color, and lettering style across every day. Make it feel painted or printed into the artwork, not like a digital overlay.",
+            f"Upper-left travel label: draw exactly one tiny hand-lettered postcard label in the upper-left corner. Exact text: \"{context['label_text']}\". Match the bundled label reference at assets/style_samples/upper-left-label-date-reference.png: title-case place name, full written date, no slash, no all-caps text, no day number. Keep the same label position, margin, scale, ink color, and lettering style across every day. Make it feel painted or printed directly into the artwork, not like a digital overlay. Do not place the label on any box, banner, placard, sticker, ribbon, background panel, underline, divider, or decorative title strip. Keep it signature-sized: very small, quiet, tucked into the extreme upper-left margin, roughly 2% of image height and no more than 15% of image width. It must not read as a headline or title.",
             "Composition: wide landscape postcard, destination and environment are the main subject, with the tiny Agent integrated naturally into the scene.",
             f"Prompt focus: {waypoint.get('prompt_focus', waypoint.get('location', 'travel scene'))}.",
             f"Avoid: {NEGATIVE}.",

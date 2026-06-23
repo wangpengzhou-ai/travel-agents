@@ -37,6 +37,9 @@ Rules:
 - Use exact text from `label_text`, with no paraphrase.
 - Keep the same margin, scale, ink color, and lettering style across days.
 - Make the label feel painted or printed into the postcard artwork.
+- Do not place the label on any box, banner, placard, sticker, ribbon, background panel, underline, divider, or decorative title strip.
+- Keep the label signature-sized, tucked into the extreme upper-left margin, roughly 2% of image height and no more than 15% of image width.
+- Keep the label visually subtle and tiny, not a headline.
 - Keep all other areas free of readable text.
 - Match `assets/style_samples/upper-left-label-date-reference.png`: title-case place name, then a full written date, such as `Rome    May 28, 2026`.
 - Do not use all-caps place names, slash separators, uppercase month abbreviations, or `DAY XX` labels.
@@ -120,7 +123,7 @@ Rules:
 Use this exact negative constraint block in generated prompts:
 
 ```text
-Avoid: centered agent, close-up agent, mascot poster, repeated lower-corner standing pose, extra animals, readable text outside the exact upper-left travel label, logos, watermarks, wrong landmarks, generic tourist collage.
+Avoid: centered agent, close-up agent, mascot poster, repeated lower-corner standing pose, extra animals, large title text, oversized label text, boxed label, label background panel, banner, placard, ribbon, sticker, caption box, underline or divider around the label, readable text outside the exact upper-left travel label, logos, watermarks, wrong landmarks, generic tourist collage.
 ```
 
 ## Skeleton
@@ -138,7 +141,7 @@ Local activity: {local_activity}.
 Agent activity: {context-aware interaction}.
 Social scene: {solo | small local interaction | broader crowd or group context}.
 Human interaction: {human_interaction}.
-Upper-left travel label: draw exactly one small hand-lettered postcard label in the upper-left safe area. Exact text: "{label_text}". Use the label reference style: title-case place name and full written date, no all-caps text, no slash separator, no day number. Keep the same label position, margin, scale, ink color, and lettering style across every day. Make it feel painted or printed into the artwork.
+Upper-left travel label: draw exactly one tiny hand-lettered postcard label in the upper-left corner. Exact text: "{label_text}". Use the label reference style: title-case place name and full written date, no all-caps text, no slash separator, no day number. Keep the same label position, margin, scale, ink color, and lettering style across every day. Make it feel painted or printed directly into the artwork, not like a digital overlay. Do not place the label on any box, banner, placard, sticker, ribbon, background panel, underline, divider, or decorative title strip. Keep it signature-sized: very small, quiet, tucked into the extreme upper-left margin, roughly 2% of image height and no more than 15% of image width. It must not read as a headline or title.
 Composition: wide landscape postcard, destination and environment are the main subject, with the tiny Agent integrated naturally into the scene.
-Avoid: centered agent, close-up agent, mascot poster, repeated lower-corner standing pose, extra animals, readable text outside the exact upper-left travel label, logos, watermarks, wrong landmarks, generic tourist collage.
+Avoid: centered agent, close-up agent, mascot poster, repeated lower-corner standing pose, extra animals, large title text, oversized label text, boxed label, label background panel, banner, placard, ribbon, sticker, caption box, underline or divider around the label, readable text outside the exact upper-left travel label, logos, watermarks, wrong landmarks, generic tourist collage.
 ```

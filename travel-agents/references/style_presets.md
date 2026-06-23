@@ -19,7 +19,7 @@ The repository-root `style-samples/` folder is legacy exploration material, not 
 
 ## Label Treatment
 
-The upper-left place/date label is part of the generated image. Keep the same placement, margin, ink color, scale, and lettering style across daily images. Forbid readable text outside that exact label.
+The upper-left place/date label is part of the generated image. Keep the same placement, margin, ink color, scale, and lettering style across daily images. Forbid readable text outside that exact label. Keep the label subtle handwritten ink directly on the artwork, signature-sized, tucked into the extreme upper-left margin, roughly 2% of image height and no more than 15% of image width, not a headline and not placed on any box, banner, placard, sticker, ribbon, background panel, underline, divider, or decorative title strip.
 
 Match `assets/style_samples/upper-left-label-date-reference.png`:
 
